@@ -1,0 +1,2259 @@
+
+```html
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Galería de imágenes y vídeos</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            padding: 30px 0 60px;
+
+            background: #111;
+
+            color: white;
+
+            font-family: Arial, sans-serif;
+
+        }
+
+
+        /* ================================================= */
+        /* MENÚ */
+        /* ================================================= */
+
+        .menu {
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 1000;
+
+            display: flex;
+
+            justify-content: center;
+
+            gap: 15px;
+
+            padding: 15px;
+
+            background: rgba(20, 20, 20, 0.95);
+
+            backdrop-filter: blur(10px);
+
+            border-bottom: 1px solid #333;
+
+        }
+
+
+        .menu button {
+
+            padding: 12px 30px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: #333;
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+
+        }
+
+
+        .menu button:hover {
+
+            background: #555;
+
+            transform: scale(1.04);
+
+        }
+
+
+        .menu button.activo {
+
+            background: #007bff;
+
+        }
+
+
+        /* ================================================= */
+        /* SECCIONES */
+        /* ================================================= */
+
+        .seccion {
+
+            display: none;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            gap: 50px;
+
+            padding-top: 30px;
+
+        }
+
+
+        .seccion.activa {
+
+            display: flex;
+
+        }
+
+
+        /* ================================================= */
+        /* CONTENEDORES */
+        /* ================================================= */
+
+        .imagen-container,
+        .video-container {
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            gap: 15px;
+
+            width: 100%;
+
+        }
+
+
+        /* ================================================= */
+        /* IMÁGENES DE LA GALERÍA */
+        /* ================================================= */
+
+        .imagen {
+
+            max-width: 90vw;
+
+            max-height: 80vh;
+
+            width: auto;
+
+            height: auto;
+
+            object-fit: contain;
+
+            display: block;
+
+            cursor: zoom-in;
+
+            user-select: none;
+
+            -webkit-user-drag: none;
+
+            transition: opacity 0.2s;
+
+        }
+
+
+        .imagen:hover {
+
+            opacity: 0.92;
+
+        }
+
+
+        /* ================================================= */
+        /* VÍDEOS */
+        /* ================================================= */
+
+        .video {
+
+            max-width: 90vw;
+
+            max-height: 80vh;
+
+            width: auto;
+
+            height: auto;
+
+            display: block;
+
+            background: black;
+
+        }
+
+
+        /* ================================================= */
+        /* DIMENSIONES */
+        /* ================================================= */
+
+        .dimensiones {
+
+            color: #aaa;
+
+            font-size: 14px;
+
+            margin-top: -5px;
+
+        }
+
+
+        /* ================================================= */
+        /* BOTÓN DESCARGAR */
+        /* ================================================= */
+
+        .descargar {
+
+            padding: 12px 28px;
+
+            background: #007bff;
+
+            color: white;
+
+            border: none;
+
+            border-radius: 8px;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+
+        }
+
+
+        .descargar:hover {
+
+            background: #0056b3;
+
+            transform: scale(1.05);
+
+        }
+
+
+        /* ================================================= */
+        /* TÍTULOS */
+        /* ================================================= */
+
+        h1 {
+
+            text-align: center;
+
+            margin: 10px 0 30px;
+
+            font-size: 28px;
+
+        }
+
+
+        /* ================================================= */
+        /* ================= VISOR ========================== */
+        /* ================================================= */
+
+        #visor {
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 9999;
+
+            display: none;
+
+            overflow: hidden;
+
+            background: #000;
+
+            user-select: none;
+
+            touch-action: none;
+
+        }
+
+
+        #visor.activo {
+
+            display: block;
+
+        }
+
+
+        /* ================================================= */
+        /* IMAGEN GRANDE */
+        /* ================================================= */
+
+        #imagenVisor {
+
+            position: absolute;
+
+            left: 50%;
+
+            top: 50%;
+
+            max-width: none;
+
+            max-height: none;
+
+            width: auto;
+
+            height: auto;
+
+            object-fit: contain;
+
+            transform-origin: center center;
+
+            cursor: grab;
+
+            user-select: none;
+
+            -webkit-user-drag: none;
+
+            will-change: transform;
+
+        }
+
+
+        #imagenVisor.arrastrando {
+
+            cursor: grabbing;
+
+        }
+
+
+        /* ================================================= */
+        /* ANIMACIÓN DE CAMBIO */
+        /* ================================================= */
+
+        #imagenVisor.animando {
+
+            transition:
+                transform 0.25s ease,
+                opacity 0.25s ease;
+
+        }
+
+
+        /* ================================================= */
+        /* BOTÓN CERRAR */
+        /* ================================================= */
+
+        #cerrarVisor {
+
+            position: absolute;
+
+            top: 20px;
+
+            right: 25px;
+
+            z-index: 30;
+
+            width: 48px;
+
+            height: 48px;
+
+            border: none;
+
+            border-radius: 50%;
+
+            background: rgba(45, 45, 45, 0.85);
+
+            color: white;
+
+            font-size: 30px;
+
+            line-height: 48px;
+
+            cursor: pointer;
+
+        }
+
+
+        #cerrarVisor:hover {
+
+            background: rgba(90, 90, 90, 0.95);
+
+        }
+
+
+        /* ================================================= */
+        /* FLECHAS */
+        /* ================================================= */
+
+        .flecha {
+
+            position: absolute;
+
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            z-index: 30;
+
+            width: 55px;
+
+            height: 80px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background: rgba(40, 40, 40, 0.65);
+
+            color: white;
+
+            font-size: 42px;
+
+            cursor: pointer;
+
+            transition:
+                background 0.2s,
+                transform 0.2s;
+
+        }
+
+
+        .flecha:hover {
+
+            background: rgba(90, 90, 90, 0.9);
+
+        }
+
+
+        #anterior {
+
+            left: 20px;
+
+        }
+
+
+        #siguiente {
+
+            right: 20px;
+
+        }
+
+
+        /* ================================================= */
+        /* CONTROLES */
+        /* ================================================= */
+
+        #controlesVisor {
+
+            position: absolute;
+
+            bottom: 20px;
+
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            z-index: 30;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 10px 15px;
+
+            border-radius: 12px;
+
+            background: rgba(30, 30, 30, 0.85);
+
+            backdrop-filter: blur(8px);
+
+        }
+
+
+        #controlesVisor button {
+
+            width: 42px;
+
+            height: 42px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: #333;
+
+            color: white;
+
+            font-size: 20px;
+
+            cursor: pointer;
+
+        }
+
+
+        #controlesVisor button:hover {
+
+            background: #555;
+
+        }
+
+
+        #zoomTexto {
+
+            min-width: 65px;
+
+            text-align: center;
+
+            color: #ddd;
+
+            font-size: 14px;
+
+        }
+
+
+        /* ================================================= */
+        /* CONTADOR */
+        /* ================================================= */
+
+        #contador {
+
+            position: absolute;
+
+            top: 25px;
+
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            z-index: 30;
+
+            padding: 8px 14px;
+
+            border-radius: 8px;
+
+            background: rgba(30, 30, 30, 0.75);
+
+            color: #ddd;
+
+            font-size: 14px;
+
+        }
+
+
+        /* ================================================= */
+        /* MÓVIL */
+        /* ================================================= */
+
+        @media (max-width: 600px) {
+
+            .menu {
+
+                gap: 8px;
+
+            }
+
+
+            .menu button {
+
+                padding: 10px 20px;
+
+                font-size: 14px;
+
+            }
+
+
+            .imagen,
+            .video {
+
+                max-width: 95vw;
+
+            }
+
+
+            .flecha {
+
+                width: 45px;
+
+                height: 65px;
+
+                font-size: 32px;
+
+            }
+
+
+            #anterior {
+
+                left: 8px;
+
+            }
+
+
+            #siguiente {
+
+                right: 8px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- ================================================= -->
+    <!-- MENÚ -->
+    <!-- ================================================= -->
+
+    <div class="menu">
+
+        <button
+            id="botonFotos"
+            class="activo"
+            onclick="mostrarSeccion('fotos')"
+        >
+            📸 Fotos
+        </button>
+
+
+        <button
+            id="botonVideos"
+            onclick="mostrarSeccion('videos')"
+        >
+            🎬 Vídeos
+        </button>
+
+    </div>
+
+
+
+    <!-- ================================================= -->
+    <!-- ==================== FOTOS ======================= -->
+    <!-- ================================================= -->
+
+    <section
+        id="fotos"
+        class="seccion activa"
+    >
+
+        <h1>📸 Galería de fotos</h1>
+
+
+        <!-- ================= FOTO 1 ================= -->
+
+        <div class="imagen-container">
+
+            <img
+                src="img1.jpg"
+                class="imagen"
+                alt="Imagen 1"
+            >
+
+            <div class="dimensiones">
+                <!-- DIMENSIONES FOTO 1 -->
+                <!-- Ejemplo: 230 × 123 px -->
+            </div>
+
+            <button
+                class="descargar"
+                onclick="descargarArchivo('img1.jpg', 'img1.jpg')"
+            >
+                ⬇ Descargar
+            </button>
+
+        </div>
+
+
+        <!-- ================= FOTO 2 ================= -->
+
+        <div class="imagen-container">
+
+            <img
+                src="img2.jpg"
+                class="imagen"
+                alt="Imagen 2"
+            >
+
+            <div class="dimensiones">
+                <!-- DIMENSIONES FOTO 2 -->
+            </div>
+
+            <button
+                class="descargar"
+                onclick="descargarArchivo('img2.jpg', 'img2.jpg')"
+            >
+                ⬇ Descargar
+            </button>
+
+        </div>
+
+
+        <!-- ================= FOTO 3 ================= -->
+
+        <div class="imagen-container">
+
+            <img
+                src="img3.jpg"
+                class="imagen"
+                alt="Imagen 3"
+            >
+
+            <div class="dimensiones">
+                <!-- DIMENSIONES FOTO 3 -->
+            </div>
+
+            <button
+                class="descargar"
+                onclick="descargarArchivo('img3.jpg', 'img3.jpg')"
+            >
+                ⬇ Descargar
+            </button>
+
+        </div>
+
+
+        <!-- ================= FOTO 4 ================= -->
+
+        <div class="imagen-container">
+
+            <img
+                src="img4.jpg"
+                class="imagen"
+                alt="Imagen 4"
+            >
+
+            <div class="dimensiones">
+                <!-- DIMENSIONES FOTO 4 -->
+            </div>
+
+            <button
+                class="descargar"
+                onclick="descargarArchivo('img4.jpg', 'img4.jpg')"
+            >
+                ⬇ Descargar
+            </button>
+
+        </div>
+
+
+        <!-- ================= FOTO 5 ================= -->
+
+        <div class="imagen-container">
+
+            <img
+                src="img5.jpg"
+                class="imagen"
+                alt="Imagen 5"
+            >
+
+            <div class="dimensiones">
+                <!-- DIMENSIONES FOTO 5 -->
+            </div>
+
+            <button
+                class="descargar"
+                onclick="descargarArchivo('img5.jpg', 'img5.jpg')"
+            >
+                ⬇ Descargar
+            </button>
+
+        </div>
+
+
+        <!-- ================= FOTO 6 ================= -->
+
+        <div class="imagen-container">
+
+            <img
+                src="img6.jpg"
+                class="imagen"
+                alt="Imagen 6"
+            >
+
+            <div class="dimensiones">
+                <!-- DIMENSIONES FOTO 6 -->
+            </div>
+
+            <button
+                class="descargar"
+                onclick="descargarArchivo('img6.jpg', 'img6.jpg')"
+            >
+                ⬇ Descargar
+            </button>
+
+        </div>
+
+
+        <!-- ================= FOTO 7 ================= -->
+
+        <div class="imagen-container">
+
+            <img
+                src="img7.jpg"
+                class="imagen"
+                alt="Imagen 7"
+            >
+
+            <div class="dimensiones">
+                <!-- DIMENSIONES FOTO 7 -->
+            </div>
+
+            <button
+                class="descargar"
+                onclick="descargarArchivo('img7.jpg', 'img7.jpg')"
+            >
+                ⬇ Descargar
+            </button>
+
+        </div>
+
+
+        <!-- ================= FOTO 8 ================= -->
+
+        <div class="imagen-container">
+
+            <img
+                src="img8.jpg"
+                class="imagen"
+                alt="Imagen 8"
+            >
+
+            <div class="dimensiones">
+                <!-- DIMENSIONES FOTO 8 -->
+            </div>
+
+            <button
+                class="descargar"
+                onclick="descargarArchivo('img8.jpg', 'img8.jpg')"
+            >
+                ⬇ Descargar
+            </button>
+
+        </div>
+
+
+        <!-- ================= FOTO 9 ================= -->
+
+        <div class="imagen-container">
+
+            <img
+                src="img9.jpg"
+                class="imagen"
+                alt="Imagen 9"
+            >
+
+            <div class="dimensiones">
+                <!-- DIMENSIONES FOTO 9 -->
+            </div>
+
+            <button
+                class="descargar"
+                onclick="descargarArchivo('img9.jpg', 'img9.jpg')"
+            >
+                ⬇ Descargar
+            </button>
+
+        </div>
+
+
+        <!-- ================= FOTO 10 ================= -->
+
+        <div class="imagen-container">
+
+            <img
+                src="img10.jpg"
+                class="imagen"
+                alt="Imagen 10"
+            >
+
+            <div class="dimensiones">
+                <!-- DIMENSIONES FOTO 10 -->
+            </div>
+
+            <button
+                class="descargar"
+                onclick="descargarArchivo('img10.jpg', 'img10.jpg')"
+            >
+                ⬇ Descargar
+            </button>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- FOTOS 11 - 30 -->
+        <!-- ================================================= -->
+
+        <script>
+
+            for (let i = 11; i <= 30; i++) {
+
+                document.write(`
+
+                    <div class="imagen-container">
+
+                        <img
+                            src="img${i}.jpg"
+                            class="imagen"
+                            alt="Imagen ${i}"
+                        >
+
+                        <div class="dimensiones">
+                            <!-- DIMENSIONES FOTO ${i} -->
+                        </div>
+
+                        <button
+                            class="descargar"
+                            onclick="descargarArchivo(
+                                'img${i}.jpg',
+                                'img${i}.jpg'
+                            )"
+                        >
+                            ⬇ Descargar
+                        </button>
+
+                    </div>
+
+                `);
+
+            }
+
+        </script>
+
+    </section>
+
+
+
+    <!-- ================================================= -->
+    <!-- =================== VÍDEOS ======================= -->
+    <!-- ================================================= -->
+
+    <section
+        id="videos"
+        class="seccion"
+    >
+
+        <h1>🎬 Galería de vídeos</h1>
+
+
+        <script>
+
+            for (let i = 1; i <= 30; i++) {
+
+                document.write(`
+
+                    <div class="video-container">
+
+                        <video
+                            class="video"
+                            controls
+                            preload="metadata"
+                        >
+
+                            <source
+                                src="video${i}.mp4"
+                                type="video/mp4"
+                            >
+
+                            Tu navegador no soporta vídeos HTML5.
+
+                        </video>
+
+
+                        <button
+                            class="descargar"
+                            onclick="descargarArchivo(
+                                'video${i}.mp4',
+                                'video${i}.mp4'
+                            )"
+                        >
+                            ⬇ Descargar vídeo
+                        </button>
+
+                    </div>
+
+                `);
+
+            }
+
+        </script>
+
+    </section>
+
+
+
+    <!-- ================================================= -->
+    <!-- ================= VISOR ========================== -->
+    <!-- ================================================= -->
+
+    <div id="visor">
+
+
+        <!-- CONTADOR -->
+
+        <div id="contador">
+            1 / 30
+        </div>
+
+
+        <!-- CERRAR -->
+
+        <button
+            id="cerrarVisor"
+            onclick="cerrarVisor(event)"
+        >
+            ×
+        </button>
+
+
+        <!-- ANTERIOR -->
+
+        <button
+            id="anterior"
+            class="flecha"
+            onclick="fotoAnterior(event)"
+        >
+            ‹
+        </button>
+
+
+        <!-- IMAGEN -->
+
+        <img
+            id="imagenVisor"
+            src=""
+            alt="Imagen ampliada"
+        >
+
+
+        <!-- SIGUIENTE -->
+
+        <button
+            id="siguiente"
+            class="flecha"
+            onclick="fotoSiguiente(event)"
+        >
+            ›
+        </button>
+
+
+        <!-- CONTROLES -->
+
+        <div id="controlesVisor">
+
+            <button
+                onclick="zoomMenos(event)"
+                title="Alejar"
+            >
+                −
+            </button>
+
+
+            <span id="zoomTexto">
+                100%
+            </span>
+
+
+            <button
+                onclick="zoomMas(event)"
+                title="Acercar"
+            >
+                +
+            </button>
+
+
+            <button
+                onclick="zoomRestablecer(event)"
+                title="Restablecer"
+            >
+                ⟳
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================================================= -->
+    <!-- ================= JAVASCRIPT ===================== -->
+    <!-- ================================================= -->
+
+    <script>
+
+
+        /* ================================================= */
+        /* MENÚ */
+        /* ================================================= */
+
+        function mostrarSeccion(seccion) {
+
+            document
+                .querySelectorAll(".seccion")
+                .forEach(elemento => {
+
+                    elemento.classList.remove("activa");
+
+                });
+
+
+            document
+                .getElementById(seccion)
+                .classList.add("activa");
+
+
+            document
+                .getElementById("botonFotos")
+                .classList.remove("activo");
+
+
+            document
+                .getElementById("botonVideos")
+                .classList.remove("activo");
+
+
+            if (seccion === "fotos") {
+
+                document
+                    .getElementById("botonFotos")
+                    .classList.add("activo");
+
+            }
+
+
+            if (seccion === "videos") {
+
+                document
+                    .getElementById("botonVideos")
+                    .classList.add("activo");
+
+            }
+
+        }
+
+
+
+        /* ================================================= */
+        /* DESCARGAR ARCHIVOS */
+        /* ================================================= */
+
+        async function descargarArchivo(url, nombre) {
+
+            try {
+
+                const respuesta =
+                    await fetch(url);
+
+
+                if (!respuesta.ok) {
+
+                    throw new Error(
+                        "No se pudo encontrar el archivo"
+                    );
+
+                }
+
+
+                const blob =
+                    await respuesta.blob();
+
+
+                const enlace =
+                    document.createElement("a");
+
+
+                const urlBlob =
+                    URL.createObjectURL(blob);
+
+
+                enlace.href = urlBlob;
+
+                enlace.download = nombre;
+
+
+                document.body.appendChild(enlace);
+
+                enlace.click();
+
+                document.body.removeChild(enlace);
+
+
+                URL.revokeObjectURL(urlBlob);
+
+            }
+
+            catch (error) {
+
+                alert(
+                    "No se pudo descargar el archivo."
+                );
+
+                console.error(error);
+
+            }
+
+        }
+
+
+
+        /* ================================================= */
+        /* VARIABLES DEL VISOR */
+        /* ================================================= */
+
+        const visor =
+            document.getElementById("visor");
+
+
+        const imagenVisor =
+            document.getElementById("imagenVisor");
+
+
+        const zoomTexto =
+            document.getElementById("zoomTexto");
+
+
+        const contador =
+            document.getElementById("contador");
+
+
+        const imagenes =
+            Array.from(
+                document.querySelectorAll(".imagen")
+            );
+
+
+        let indiceActual = 0;
+
+
+        let zoom = 1;
+
+
+        let posicionX = 0;
+
+        let posicionY = 0;
+
+
+        let arrastrando = false;
+
+
+        let inicioX = 0;
+
+        let inicioY = 0;
+
+
+        let ultimoX = 0;
+
+        let ultimoY = 0;
+
+
+        let desplazamientoX = 0;
+
+        let desplazamientoY = 0;
+
+
+        let cambiandoFoto = false;
+
+
+        /* ================================================= */
+        /* ABRIR VISOR */
+        /* ================================================= */
+
+        imagenes.forEach((imagen, indice) => {
+
+            imagen.addEventListener(
+                "click",
+                function () {
+
+                    abrirVisor(indice);
+
+                }
+            );
+
+        });
+
+
+
+        function abrirVisor(indice) {
+
+            indiceActual = indice;
+
+            zoom = 1;
+
+            posicionX = 0;
+
+            posicionY = 0;
+
+            cambiandoFoto = false;
+
+
+            imagenVisor.classList.remove(
+                "animando"
+            );
+
+
+            imagenVisor.style.opacity = "1";
+
+
+            imagenVisor.src =
+                imagenes[indiceActual].src;
+
+
+            visor.classList.add("activo");
+
+
+            document.body.style.overflow =
+                "hidden";
+
+
+            actualizarImagen();
+
+        }
+
+
+
+        /* ================================================= */
+        /* CERRAR VISOR */
+        /* ================================================= */
+
+        function cerrarVisor(event) {
+
+            if (event) {
+
+                event.stopPropagation();
+
+            }
+
+
+            visor.classList.remove(
+                "activo"
+            );
+
+
+            document.body.style.overflow =
+                "";
+
+
+            cambiandoFoto = false;
+
+        }
+
+
+
+        /* ================================================= */
+        /* ACTUALIZAR IMAGEN */
+        /* ================================================= */
+
+        function actualizarImagen() {
+
+            imagenVisor.style.transform =
+                `translate(-50%, -50%)
+                 translate(${posicionX}px, ${posicionY}px)
+                 scale(${zoom})`;
+
+
+            zoomTexto.textContent =
+                Math.round(zoom * 100) + "%";
+
+
+            contador.textContent =
+                `${indiceActual + 1} / ${imagenes.length}`;
+
+        }
+
+
+
+        /* ================================================= */
+        /* ZOOM + */
+        /* ================================================= */
+
+        function zoomMas(event) {
+
+            if (event) {
+
+                event.stopPropagation();
+
+            }
+
+
+            zoom += 0.25;
+
+
+            if (zoom > 5) {
+
+                zoom = 5;
+
+            }
+
+
+            actualizarImagen();
+
+        }
+
+
+
+        /* ================================================= */
+        /* ZOOM - */
+        /* ================================================= */
+
+        function zoomMenos(event) {
+
+            if (event) {
+
+                event.stopPropagation();
+
+            }
+
+
+            zoom -= 0.25;
+
+
+            if (zoom < 0.25) {
+
+                zoom = 0.25;
+
+            }
+
+
+            if (zoom <= 1) {
+
+                zoom = 1;
+
+                posicionX = 0;
+
+                posicionY = 0;
+
+            }
+
+
+            actualizarImagen();
+
+        }
+
+
+
+        /* ================================================= */
+        /* RESTABLECER ZOOM */
+        /* ================================================= */
+
+        function zoomRestablecer(event) {
+
+            if (event) {
+
+                event.stopPropagation();
+
+            }
+
+
+            zoom = 1;
+
+            posicionX = 0;
+
+            posicionY = 0;
+
+
+            actualizarImagen();
+
+        }
+
+
+
+        /* ================================================= */
+        /* RUEDA DEL RATÓN */
+        /* ================================================= */
+
+        visor.addEventListener(
+            "wheel",
+            function (event) {
+
+                event.preventDefault();
+
+
+                if (event.deltaY < 0) {
+
+                    zoom += 0.15;
+
+                }
+
+                else {
+
+                    zoom -= 0.15;
+
+                }
+
+
+                zoom =
+                    Math.max(
+                        0.25,
+                        Math.min(5, zoom)
+                    );
+
+
+                if (zoom <= 1) {
+
+                    zoom = 1;
+
+                    posicionX = 0;
+
+                    posicionY = 0;
+
+                }
+
+
+                actualizarImagen();
+
+            },
+            {
+                passive: false
+            }
+        );
+
+
+
+        /* ================================================= */
+        /* INICIAR ARRASTRE */
+        /* ================================================= */
+
+        imagenVisor.addEventListener(
+            "mousedown",
+            function (event) {
+
+                if (event.button !== 0) {
+
+                    return;
+
+                }
+
+
+                if (cambiandoFoto) {
+
+                    return;
+
+                }
+
+
+                arrastrando = true;
+
+
+                inicioX =
+                    event.clientX;
+
+
+                inicioY =
+                    event.clientY;
+
+
+                ultimoX =
+                    event.clientX;
+
+
+                ultimoY =
+                    event.clientY;
+
+
+                desplazamientoX = 0;
+
+                desplazamientoY = 0;
+
+
+                imagenVisor.classList.add(
+                    "arrastrando"
+                );
+
+
+                event.preventDefault();
+
+            }
+        );
+
+
+
+        /* ================================================= */
+        /* MOVER IMAGEN */
+        /* ================================================= */
+
+        document.addEventListener(
+            "mousemove",
+            function (event) {
+
+                if (!arrastrando) {
+
+                    return;
+
+                }
+
+
+                if (cambiandoFoto) {
+
+                    return;
+
+                }
+
+
+                const dx =
+                    event.clientX - ultimoX;
+
+
+                const dy =
+                    event.clientY - ultimoY;
+
+
+                const totalX =
+                    event.clientX - inicioX;
+
+
+                const totalY =
+                    event.clientY - inicioY;
+
+
+                desplazamientoX =
+                    totalX;
+
+
+                desplazamientoY =
+                    totalY;
+
+
+                /*
+                    Si hay zoom, la imagen se mueve
+                    libremente.
+                */
+
+                if (zoom > 1) {
+
+                    posicionX += dx;
+
+                    posicionY += dy;
+
+
+                    actualizarImagen();
+
+                }
+
+                /*
+                    Si estamos al 100%, movemos
+                    la imagen horizontalmente para
+                    crear el efecto de deslizar.
+                */
+
+                else {
+
+                    posicionX = totalX * 0.8;
+
+                    posicionY = totalY * 0.05;
+
+
+                    actualizarImagen();
+
+                }
+
+
+                ultimoX =
+                    event.clientX;
+
+
+                ultimoY =
+                    event.clientY;
+
+            }
+        );
+
+
+
+        /* ================================================= */
+        /* TERMINAR ARRASTRE */
+        /* ================================================= */
+
+        document.addEventListener(
+            "mouseup",
+            function () {
+
+                if (!arrastrando) {
+
+                    return;
+
+                }
+
+
+                arrastrando = false;
+
+
+                imagenVisor.classList.remove(
+                    "arrastrando"
+                );
+
+
+                /*
+                    CON ZOOM:
+                    simplemente dejamos la imagen
+                    donde la haya arrastrado.
+                */
+
+                if (zoom > 1) {
+
+                    return;
+
+                }
+
+
+                /*
+                    SIN ZOOM:
+                    comprobar si se ha arrastrado
+                    suficientemente.
+                */
+
+                const umbral = 120;
+
+
+                if (
+                    Math.abs(desplazamientoX)
+                    >= umbral
+                ) {
+
+                    if (
+                        desplazamientoX < 0
+                    ) {
+
+                        animarCambio(
+                            1
+                        );
+
+                    }
+
+                    else {
+
+                        animarCambio(
+                            -1
+                        );
+
+                    }
+
+                }
+
+                else {
+
+                    /*
+                        No llegó al umbral:
+                        volver suavemente al centro.
+                    */
+
+                    imagenVisor.classList.add(
+                        "animando"
+                    );
+
+
+                    posicionX = 0;
+
+                    posicionY = 0;
+
+
+                    actualizarImagen();
+
+
+                    setTimeout(
+                        function () {
+
+                            imagenVisor.classList.remove(
+                                "animando"
+                            );
+
+                        },
+                        250
+                    );
+
+                }
+
+            }
+        );
+
+
+
+        /* ================================================= */
+        /* ANIMACIÓN CAMBIO DE FOTO */
+        /* ================================================= */
+
+        function animarCambio(direccion) {
+
+            if (cambiandoFoto) {
+
+                return;
+
+            }
+
+
+            cambiandoFoto = true;
+
+
+            const ancho =
+                window.innerWidth;
+
+
+            imagenVisor.classList.add(
+                "animando"
+            );
+
+
+            /*
+                Direccion:
+                1  = siguiente
+                -1 = anterior
+            */
+
+            posicionX =
+                direccion * -ancho;
+
+
+            imagenVisor.style.opacity =
+                "0";
+
+
+            actualizarImagen();
+
+
+            setTimeout(
+                function () {
+
+                    if (direccion === 1) {
+
+                        indiceActual++;
+
+
+                        if (
+                            indiceActual >=
+                            imagenes.length
+                        ) {
+
+                            indiceActual = 0;
+
+                        }
+
+                    }
+
+                    else {
+
+                        indiceActual--;
+
+
+                        if (
+                            indiceActual < 0
+                        ) {
+
+                            indiceActual =
+                                imagenes.length - 1;
+
+                        }
+
+                    }
+
+
+                    /*
+                        Cargar nueva foto
+                    */
+
+                    imagenVisor.src =
+                        imagenes[indiceActual].src;
+
+
+                    /*
+                        Colocarla inicialmente
+                        desde el lado contrario.
+                    */
+
+                    posicionX =
+                        direccion * ancho;
+
+
+                    posicionY = 0;
+
+
+                    imagenVisor.style.opacity =
+                        "0";
+
+
+                    imagenVisor.offsetWidth;
+
+
+                    /*
+                        Animación hacia el centro.
+                    */
+
+                    requestAnimationFrame(
+                        function () {
+
+                            requestAnimationFrame(
+                                function () {
+
+                                    posicionX = 0;
+
+                                    posicionY = 0;
+
+                                    imagenVisor.style.opacity =
+                                        "1";
+
+
+                                    actualizarImagen();
+
+                                }
+                            );
+
+                        }
+                    );
+
+
+                    setTimeout(
+                        function () {
+
+                            imagenVisor.classList.remove(
+                                "animando"
+                            );
+
+
+                            cambiandoFoto =
+                                false;
+
+
+                            actualizarImagen();
+
+                        },
+                        280
+                    );
+
+                },
+                250
+            );
+
+        }
+
+
+
+        /* ================================================= */
+        /* SIGUIENTE */
+        /* ================================================= */
+
+        function fotoSiguiente(event) {
+
+            if (event) {
+
+                event.stopPropagation();
+
+            }
+
+
+            if (cambiandoFoto) {
+
+                return;
+
+            }
+
+
+            /*
+                Solo cambiamos una foto.
+            */
+
+            animarCambio(1);
+
+        }
+
+
+
+        /* ================================================= */
+        /* ANTERIOR */
+        /* ================================================= */
+
+        function fotoAnterior(event) {
+
+            if (event) {
+
+                event.stopPropagation();
+
+            }
+
+
+            if (cambiandoFoto) {
+
+                return;
+
+            }
+
+
+            /*
+                Solo cambiamos una foto.
+            */
+
+            animarCambio(-1);
+
+        }
+
+
+
+        /* ================================================= */
+        /* DOBLE CLIC */
+        /* ================================================= */
+
+        imagenVisor.addEventListener(
+            "dblclick",
+            function (event) {
+
+                event.preventDefault();
+
+
+                if (cambiandoFoto) {
+
+                    return;
+
+                }
+
+
+                if (zoom === 1) {
+
+                    zoom = 2;
+
+                }
+
+                else {
+
+                    zoom = 1;
+
+                    posicionX = 0;
+
+                    posicionY = 0;
+
+                }
+
+
+                actualizarImagen();
+
+            }
+        );
+
+
+
+        /* ================================================= */
+        /* TECLADO */
+        /* ================================================= */
+
+        document.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    !visor.classList.contains(
+                        "activo"
+                    )
+                ) {
+
+                    return;
+
+                }
+
+
+                if (
+                    event.key === "Escape"
+                ) {
+
+                    cerrarVisor();
+
+                    return;
+
+                }
+
+
+                if (
+                    event.key === "ArrowRight"
+                ) {
+
+                    fotoSiguiente();
+
+                    return;
+
+                }
+
+
+                if (
+                    event.key === "ArrowLeft"
+                ) {
+
+                    fotoAnterior();
+
+                    return;
+
+                }
+
+
+                if (
+                    event.key === "+"
+                    ||
+                    event.key === "="
+                ) {
+
+                    zoomMas(event);
+
+                    return;
+
+                }
+
+
+                if (
+                    event.key === "-"
+                ) {
+
+                    zoomMenos(event);
+
+                    return;
+
+                }
+
+
+                if (
+                    event.key === "0"
+                ) {
+
+                    zoomRestablecer(event);
+
+                    return;
+
+                }
+
+            }
+        );
+
+
+
+        /* ================================================= */
+        /* TOUCH */
+        /* ================================================= */
+
+        let touchInicioX = 0;
+
+        let touchInicioY = 0;
+
+
+        visor.addEventListener(
+            "touchstart",
+            function (event) {
+
+                if (
+                    event.touches.length !== 1
+                ) {
+
+                    return;
+
+                }
+
+
+                touchInicioX =
+                    event.touches[0].clientX;
+
+
+                touchInicioY =
+                    event.touches[0].clientY;
+
+            },
+            {
+                passive: true
+            }
+        );
+
+
+        visor.addEventListener(
+            "touchend",
+            function (event) {
+
+                if (
+                    event.changedTouches.length !== 1
+                ) {
+
+                    return;
+
+                }
+
+
+                if (zoom > 1) {
+
+                    return;
+
+                }
+
+
+                const finalX =
+                    event.changedTouches[0].clientX;
+
+
+                const finalY =
+                    event.changedTouches[0].clientY;
+
+
+                const diferenciaX =
+                    finalX - touchInicioX;
+
+
+                const diferenciaY =
+                    finalY - touchInicioY;
+
+
+                /*
+                    Swipe horizontal
+                */
+
+                if (
+                    Math.abs(diferenciaX) > 100
+                    &&
+                    Math.abs(diferenciaX) >
+                    Math.abs(diferenciaY)
+                ) {
+
+                    if (
+                        diferenciaX < 0
+                    ) {
+
+                        fotoSiguiente();
+
+                    }
+
+                    else {
+
+                        fotoAnterior();
+
+                    }
+
+                }
+
+            },
+            {
+                passive: true
+            }
+        );
+
+    </script>
+
+
+</body>
+
+</html>
+```
